@@ -9,6 +9,12 @@ test.email@gmail.com, test.email+spam@gmail.com and testemail@gmail.com will all
 
 ## Install and Run
 
+Install prerequisite packages
+```
+sudo apt update
+sudo apt install python3-pip python3-dev build-essential libssl-dev libffi-dev python3-setuptools python3-venv
+```
+
 Clone this repository.
 ```
 cd ./emailchecker
@@ -54,3 +60,12 @@ Results are returned in JSON format.
 }
 ```
 
+## To Do
+This is a demonstration project.  If you were to set this up for a production environment there are several additional elements that are required.
+
+- webserver:  nginx is my personal favorite, but apache has its own mod for hosting python/flask
+- uwsgi or gunicorn:  In order to host this service on demand with nginx since nginx doesn't speak WSGI.
+- dns:  a nice domain to host the service would be a lovely addition
+- systemd unit:  it's easy to set this emailchecker up as a systemd service for easy management through systemctl
+- more sophisticated logging
+- turn off debug mode
