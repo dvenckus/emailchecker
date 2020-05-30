@@ -1,0 +1,4 @@
+FLASK_APP=emailchecker
+FLASK_ENV=development
+FLASK_RUN_PORT=8082
+FLASK_DEBUG=1
