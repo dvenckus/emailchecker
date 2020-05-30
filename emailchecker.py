@@ -7,37 +7,39 @@ app = Flask(__name__)
 @app.route('/count', methods = ['POST'])
 def email_count():
   '''
-  expect json post data
-  '{ 
-      "emails": [ 
-        "test.email@gmail.com", 
-        "test.email+spam@gmail.com", 
-        "testemail@gmail.com",
-        "this.is.a.test+100@gmail.com",
-        "my.test@gmail.com",
-        ...
-      ],
-  }'
-  process each email address, 
-  return a count for the number of unique "normalized" email addresses
-  also returns a dictionary of the normalized email and the number of variations detected for that email
+  INPUT json post data
+    '{ 
+        "email": [ 
+          "test.email@gmail.com", 
+          "test.email+spam@gmail.com", 
+          "testemail@gmail.com",
+          "this.is.a.test+100@gmail.com",
+          "my.test@gmail.com",
+          ...
+        ],
+    }'
+  
+  OUTPUT 
+  count:    (integer) number of matched email addresses
+  matched:  (dictionary) the matched emails and the number of occurences of each email
   '''
   try:
     postdata = request.get_json(silent=True)
     http_code = 200
-    processedEmails = {}
+    matched_emails = {}
 
-    if postdata and len(postdata['emails']):
-      for email in postdata['emails']:
-        processedEmails = process_email(processedEmails, email)
+    if postdata and len(postdata['email']):
+      for email in postdata['email']:
+        matched_emails = do_email_matching(matched_emails, email)
         
-    return json.dumps({'count': len(processedEmails), 'data': str(processedEmails) }), http_code, {'ContentType':'application/json'}
+    return json.dumps({'count': len(matched_emails), 'matched': str(matched_emails) }), http_code, {'ContentType':'application/json'}
   
   except Exception as e:
-    return json.dumps({'Error': 'Missing POST data'}), http_code, {'ContentType':'application/json'}
+    http_code = 400
+    return json.dumps({'Error': str(e)}), http_code, {'ContentType':'application/json'}
 
 
-def process_email(email_dic = {}, email=''):
+def do_email_matching(matched_emails = {}, email=''):
   '''
   process the email address,
   if new, add it to the dictionary and initialize the counter
@@ -47,7 +49,7 @@ def process_email(email_dic = {}, email=''):
   # ignore empty
   email = email.strip()
   if not email:
-    return email_dic
+    return matched_emails
 
   # separate the email name from the domain
   email_arr = email.split("@")
@@ -60,15 +62,15 @@ def process_email(email_dic = {}, email=''):
   # reassemble parsed email address
   rev_email = f"{name}@{domain}"
 
-  # new email, add it an init the count to 0
-  if rev_email not in email_dic: 
-    email_dic[rev_email] = 0
-
-  # increment the instance counter
-  email_dic[rev_email] += 1
+  if rev_email in matched_emails: 
+    # increment existing email
+    matched_emails[rev_email] += 1 
+  else:
+    # initialize new email
+    matched_emails[rev_email] = 1
 
   # return the updated dic
-  return email_dic
+  return matched_emails
   
 
 
